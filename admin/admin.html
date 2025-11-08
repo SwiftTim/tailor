@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tailor Admin Panel</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin:0; padding:0; background:#f2f2f2;">
+
+<!-- ===== Admin Login ===== -->
+<div id="login-section" style="display:flex; justify-content:center; align-items:center; height:100vh; background:#e8e8e8;">
+    <div style="background:#fff; padding:40px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1); width:350px; text-align:center;">
+        <h2 style="margin-bottom:20px; color:#333;">Admin Login</h2>
+        <form id="loginForm" style="display:flex; flex-direction:column;">
+            <input type="text" id="username" placeholder="Username" required 
+                   style="padding:10px; margin-bottom:15px; border-radius:5px; border:1px solid #ccc;">
+            <input type="password" id="password" placeholder="Password" required 
+                   style="padding:10px; margin-bottom:20px; border-radius:5px; border:1px solid #ccc;">
+            <button type="submit" style="padding:10px; background:#c0a062; color:#fff; border:none; border-radius:5px; cursor:pointer;">Login</button>
+        </form>
+    </div>
+</div>
+
+<!-- ===== Admin Dashboard ===== -->
+<div id="dashboard" style="display:none;">
+
+    <!-- Sidebar -->
+    <div style="width:250px; height:100vh; background:#333; color:#fff; position:fixed; padding-top:30px;">
+        <h2 style="text-align:center; margin-bottom:30px; color:#c0a062;">Tailor Admin</h2>
+        <ul style="list-style:none; padding:0;">
+            <li style="padding:15px; cursor:pointer; border-bottom:1px solid #444;" onclick="showTab('bookings-tab')">Bookings</li>
+            <li style="padding:15px; cursor:pointer; border-bottom:1px solid #444;" onclick="showTab('appointments-tab')">Appointments</li>
+            <li style="padding:15px; cursor:pointer; border-bottom:1px solid #444;" onclick="showTab('gallery-tab')">Upload Gallery</li>
+            <li style="padding:15px; cursor:pointer; border-bottom:1px solid #444;" onclick="showTab('orders-tab')">Client Orders</li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div style="margin-left:250px; padding:30px;">
+
+        <!-- Bookings Tab -->
+        <div id="bookings-tab" style="display:block;">
+            <h2 style="color:#333;">Bookings</h2>
+            <table id="bookingsTable" border="1" style="width:100%; border-collapse:collapse; margin-top:20px;">
+                <tr style="background:#c0a062; color:#fff;">
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Date</th>
+                    <th>Message</th>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Appointments Tab -->
+        <div id="appointments-tab" style="display:none;">
+            <h2 style="color:#333;">Appointments</h2>
+            <table id="appointmentsTable" border="1" style="width:100%; border-collapse:collapse; margin-top:20px;">
+                <tr style="background:#c0a062; color:#fff;">
+                    <th>Client</th>
+                    <th>Service</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Gallery Upload Tab -->
+        <div id="gallery-tab" style="display:none;">
+            <h2 style="color:#333;">Upload Gallery</h2>
+            <form id="galleryForm" style="margin-top:20px;">
+                <input type="file" id="galleryInput" multiple style="padding:10px; margin-bottom:15px;">
+                <button type="submit" style="padding:10px; background:#c0a062; color:#fff; border:none; border-radius:5px; cursor:pointer;">Upload</button>
+            </form>
+        </div>
+
+        <!-- Client Orders Tab -->
+        <div id="orders-tab" style="display:none;">
+            <h2 style="color:#333;">Client Orders</h2>
+            <table id="ordersTable" border="1" style="width:100%; border-collapse:collapse; margin-top:20px;">
+                <tr style="background:#c0a062; color:#fff;">
+                    <th>Client</th>
+                    <th>Order</th>
+                    <th>Status</th>
+                    <th>Update Status</th>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<!-- ===== Scripts ===== -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="supabase-config.js"></script>
+<script>
+    function showTab(tabId) {
+        ['bookings-tab','appointments-tab','gallery-tab','orders-tab'].forEach(t => {
+            document.getElementById(t).style.display = 'none';
+        });
+        document.getElementById(tabId).style.display = 'block';
+    }
+
+    // Demo login
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        // You can replace with supabase.auth.signIn later
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        loadBookings();
+        loadAppointments();
+        loadOrders();
+    });
+
+    // ===== Load Bookings from Supabase =====
+    async function loadBookings() {
+        let { data, error } = await supabase
+            .from('bookings')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        const table = document.getElementById('bookingsTable');
+        data.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${row.name}</td>
+                <td>${row.email}</td>
+                <td>${row.phone}</td>
+                <td>${row.date}</td>
+                <td>${row.message}</td>
+            `;
+            table.appendChild(tr);
+        });
+    }
+
+    // ===== Load Appointments =====
+    async function loadAppointments() {
+        let { data, error } = await supabase
+            .from('appointments')
+            .select('*')
+            .order('date', { ascending: true });
+
+        const table = document.getElementById('appointmentsTable');
+        data.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${row.client}</td>
+                <td>${row.service}</td>
+                <td>${row.date}</td>
+                <td>${row.status}</td>
+            `;
+            table.appendChild(tr);
+        });
+    }
+
+    // ===== Load Client Orders =====
+    async function loadOrders() {
+        let { data, error } = await supabase
+            .from('orders')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        const table = document.getElementById('ordersTable');
+        data.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${row.client}</td>
+                <td>${row.order}</td>
+                <td>${row.status}</td>
+                <td>
+                    <select onchange="updateOrderStatus(${row.id}, this.value)">
+                        <option value="Pending" ${row.status==='Pending'?'selected':''}>Pending</option>
+                        <option value="In Progress" ${row.status==='In Progress'?'selected':''}>In Progress</option>
+                        <option value="Completed" ${row.status==='Completed'?'selected':''}>Completed</option>
+                    </select>
+                </td>
+            `;
+            table.appendChild(tr);
+        });
+    }
+
+    // ===== Update Order Status =====
+    async function updateOrderStatus(orderId, newStatus) {
+        const { data, error } = await supabase
+            .from('orders')
+            .update({ status: newStatus })
+            .eq('id', orderId);
+        if(error) alert('Error updating status: '+error.message);
+    }
+
+    // ===== Upload Gallery Images =====
+    document.getElementById('galleryForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const files = document.getElementById('galleryInput').files;
+        for(let file of files) {
+            const { data, error } = await supabase
+                .storage
+                .from('gallery')
+                .upload(file.name, file);
+            if(error) console.log('Upload error:', error);
+        }
+        alert('Files uploaded!');
+    });
+
+</script>
+</body>
+</html>

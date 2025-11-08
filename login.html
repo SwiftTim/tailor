@@ -1,0 +1,190 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>TailorHub | Sign Up</title>
+    <meta name="description" content="Register to book fittings and manage tailoring orders.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="images/favicon.png">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="public/css/bootstrap.min.css">
+    <link rel="stylesheet" href="public/css/font-awesome.min.css">
+    <link rel="stylesheet" href="public/css/animate.css">
+    <link rel="stylesheet" href="public/style.css">
+    <link rel="stylesheet" href="public/css/responsive.css">
+
+    <style>
+        body {
+            background: #f7f7f7;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+        }
+        .signup-container {
+            max-width: 420px;
+            margin: 80px auto;
+            background: #fff;
+            border-radius: 10px;
+            padding: 40px 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: left;
+        }
+        .signup-container h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-control {
+            border-radius: 8px;
+            box-shadow: none;
+            border-color: #ddd;
+        }
+        .btn-primary {
+            width: 100%;
+            background-color: #b33b12;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #912f0f;
+        }
+        .footer-note {
+            margin-top: 15px;
+            text-align: center;
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"></script>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="text-center py-4">
+        <a href="index.html"><img src="logo1.png" alt="Tailor Logo" style="max-width:150px;"></a>
+    </header>
+
+    <!-- Signup Form -->
+    <section class="signup-section">
+        <div class="signup-container">
+            <h2>Create Account</h2>
+            <form id="signup-form">
+                <div class="form-group mb-3">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" class="form-control" placeholder="John Doe" required>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" class="form-control" placeholder="you@example.com" required>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" class="form-control" placeholder="Enter password" required>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" class="form-control" placeholder="Re-enter password" required>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label for="role">Role</label>
+                    <select id="role" class="form-control" required>
+                        <option value="customer" selected>Customer</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Sign Up</button>
+
+                <p class="footer-note">Already have an account? <a href="login.html">Login here</a></p>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="text-align:center; width:100%; background:#f9f9f9; padding:20px 0; margin-top:50px;">
+        <p style="font-size:14px;">&copy; 2025 TailorHub | Bringing Style to Life</p>
+    </footer>
+
+    <!-- JS -->
+  <script type="module">
+import { supabase } from './supabase-config.js';
+
+// Get the signup form
+const signupForm = document.getElementById('signup-form');
+
+signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Get form values
+    const fullName = document.getElementById('fullName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const role = document.getElementById('role').value; // e.g., admin or user
+
+    // Validate passwords
+    if (password !== confirmPassword) {
+        alert("Passwords do not match!");
+        return;
+    }
+
+    // ✅ Create Supabase Auth user
+    const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+            data: { full_name: fullName, role }
+        }
+    });
+
+    if (error) {
+        alert("Signup failed: " + error.message);
+        console.error(error);
+        return;
+    }
+
+    // ✅ Automatically log in the new user
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+    });
+
+    if (signInError) {
+        alert("Error signing in: " + signInError.message);
+        console.error(signInError);
+        return;
+    }
+
+    // ✅ Save user info in your custom 'users' table
+    const { error: insertError } = await supabase
+        .from('users')
+        .insert([{ name: fullName, email, role }]);
+
+    if (insertError) {
+        console.error('Error saving user to users table:', insertError);
+    }
+
+    // ✅ Feedback & redirect
+    alert("Account created successfully! Redirecting to booking page...");
+    setTimeout(() => {
+        window.location.href = "/public/booking.html";
+    }, 2000);
+});
+</script>
+
+
+
+
+</body>
+</html>
